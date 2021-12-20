@@ -1,0 +1,72 @@
+# Welcome to serverless. Read the docs
+# https://serverless.com/framework/docs/
+
+service: website-fileshare
+
+plugins:
+  - serverless-s3-sync
+  - serverless-pseudo-parameters
+
+custom:
+  currentStage: ${opt:stage, self:provider.stage}
+  siteName: website-394697544486-${self:custom.currentStage}
+  s3Sync:
+    - bucketName: ${self:custom.siteName}
+      localDir: build
+
+provider:
+  name: aws
+  region: eu-west-1
+  runtime: nodejs10.x
+
+resources:
+  Resources:
+    ## Specifying the S3 Bucket
+    StaticSite:
+      Type: AWS::S3::Bucket
+      Properties:
+        AccessControl: PublicRead
+        BucketName: ${self:custom.siteName}
+        WebsiteConfiguration:
+          IndexDocument: index.html
+          ErrorDocument: index.html
+
+    StaticSiteS3BucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        Bucket:
+          Ref: StaticSite
+        PolicyDocument:
+          Statement:
+            - Sid: PublicReadGetObject
+              Effect: Allow
+              Principal: "*"
+              Action:
+              - s3:GetObject
+              Resource:
+                Fn::Join: [
+                  "", [
+                    "arn:aws:s3:::",
+                    {
+                      "Ref": "StaticSite"
+                    },
+                    "/*"
+                  ]
+                ]
+
+  Outputs:
+    StaticSiteS3BucketName:
+      Value:
+        'Ref': StaticSite
+    StaticSiteS3BucketDomainName:
+      Value:
+        Fn::GetAtt:
+          - StaticSite
+          - DomainName
+    StaticSiteS3BucketWebsiteURL:
+      Value:
+        Fn::GetAtt:
+          - StaticSite
+          - WebsiteURL
+      Export:
+          Name: WebsiteURL

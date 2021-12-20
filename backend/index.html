@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <style>
+        body {margin:10px}
+    </style>
+
+    <title>AWS Websockets</title>
+</head>
+<body>
+
+<input id="webSocketConnection" type="text" size="80" value="wss://9mxi3j1vqd.execute-api.eu-west-1.amazonaws.com/dev"><br/>
+<button id="connectToWebSocketButton" onclick="connectToWebSocket()">Connect</button> 
+<button id="disconnectButton" onclick="disconnect()">Disconnect</button>&nbsp;<span id="socketState"></span><br/><br/>
+
+<input id="messageInput" type="text" size="80" placeholder="ID of recipient"><br/>
+<button id="connectMessageButton" onclick="connectMessage()">Get my ID</button> 
+<button id="requestMessageButton" onclick="requestMessage()">Request from ID</button> 
+<button id="transferMessageButton" onclick="transferMessage()">Transfer to ID</button> 
+<button id="acknowledgeMessageButton" onclick="acknowledgeMessage()">Send acknowledge to ID</button> 
+<br/>
+
+Socket Messages:<br/>
+<span id="messages"></span>
+
+<script>
+
+    document.getElementById("disconnectButton").disabled = true;
+    document.getElementById("connectMessageButton").disabled = true;
+    document.getElementById("requestMessageButton").disabled = true;
+    document.getElementById("transferMessageButton").disabled = true;
+    document.getElementById("acknowledgeMessageButton").disabled = true;
+    document.getElementById("socketState").innerHTML = 'Connection Closed';
+
+    var socket = null;
+    
+    function connectMessage(){
+        payload = { "action": "Connect" };
+
+        socket.send(JSON.stringify(payload));
+    }
+
+    function requestMessage(){
+        payload = { 
+			"action": "Request",
+			"message": { 
+                "connectionid": document.getElementById("messageInput").value,
+                "QRhash": "685375405",
+				"message": "important message ---"
+			} 
+		};
+
+        socket.send(JSON.stringify(payload));
+    }
+
+    function transferMessage(){
+        payload = { 
+			"action": "Transfer",
+			"message": { 
+				"connectionid": document.getElementById("messageInput").value,
+				"data": "important data ---"
+			} 
+		};
+
+        socket.send(JSON.stringify(payload));
+    }
+
+    function acknowledgeMessage(){
+        payload = { 
+			"action": "Acknowledge",
+			"message": { 
+				"connectionid": document.getElementById("messageInput").value,
+                "success": true,
+                "missingchunkids": []
+			} 
+		};
+
+        socket.send(JSON.stringify(payload));
+    }
+
+    function connectToWebSocket(){
+        webSocketConnection = document.getElementById("webSocketConnection").value;
+        socket = new WebSocket(webSocketConnection);
+
+        socket.onopen = function(event) {
+            document.getElementById("socketState").innerHTML = 'Connection Open';
+
+            document.getElementById("connectToWebSocketButton").disabled = true;
+            document.getElementById("disconnectButton").disabled = false;
+            document.getElementById("connectMessageButton").disabled = false;
+            document.getElementById("requestMessageButton").disabled = false;
+            document.getElementById("transferMessageButton").disabled = false;
+            document.getElementById("acknowledgeMessageButton").disabled = false;
+        };
+
+        socket.onmessage = function(event) {
+            document.getElementById("messages").innerHTML += event.data + '<br/>'
+        };
+
+        socket.onerror = function(event) {
+            console.error("WebSocket error observed:", event);
+            document.getElementById("socketState").innerHTML = 'Connection Error';
+        };
+
+        socket.onclose = function(event) {
+            document.getElementById("socketState").innerHTML = 'Connection Closed';
+
+            document.getElementById("connectToWebSocketButton").disabled = false;
+            document.getElementById("disconnectButton").disabled = true;
+            document.getElementById("connectMessageButton").disabled = true;
+            document.getElementById("requestMessageButton").disabled = true;
+            document.getElementById("transferMessageButton").disabled = true;
+            document.getElementById("acknowledgeMessageButton").disabled = true;
+        };
+    }
+
+    function disconnect(){
+        socket.close();
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+service: awswebsocketfileshare
+# frameworkVersion: "1.73.1"
+
+custom:
+  currentStage: ${opt:stage, self:provider.stage}
+  lambdaRunTime: go1.x
+
+provider:
+  name: aws
+  runtime: ${self:custom.lambdaRunTime}
+  versionFunctions: false
+  region: eu-west-1
+  timeout: 29
+
+plugins:
+  - serverless-pseudo-parameters
+
+package:
+  individually: true
+  exclude:
+    - "lib/**"
+    - "node_modules/**"
+
+functions:
+  connectHandler:
+    handler: build/file-sharing-2020
+    events:
+      - websocket: $connect
+      - websocket: $disconnect
+      - websocket: Connect
+      - websocket: Request
+      - websocket: Transfer
+      - websocket: Acknowledge

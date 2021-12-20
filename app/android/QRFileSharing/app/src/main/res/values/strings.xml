@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">QR File Sharing</string>
+    <string name="button_send_file">Send File</string>
+    <string name="button_receive_file">Receive File</string>
+    <string name="open_camera">OPEN CAMERA</string>
+    <string name="scan_barcode">Scan Barcode</string>
+    <string name="take_barcode_picture">Take Barcode Picture</string>
+    <string name="transfer_in_progress">Transfer in progress…</string>
+    <string name="transfer_completed">Transfer completed</string>
+    <string name="transfer_waiting">Waiting on transfer requests…</string>
+    <string name="transfer_connected">QR File Sharing Connected</string>
+</resources>

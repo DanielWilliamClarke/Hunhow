@@ -1,0 +1,71 @@
+@startuml fileshare
+
+Actor Sender
+box "Amazon Web Services"
+participant "Websocket API" as Gateway1 #99FF99
+collections Lambda
+participant "Websocket API" as Gateway2 #99FF99
+end box
+Actor Receiver
+
+== Connect Websockets ==
+
+Sender -> Gateway1: Websocket Connect
+activate Gateway1
+Gateway1 -> Lambda: Return Websocket ID
+activate Lambda
+Gateway1 <-- Lambda: Websocket ID
+deactivate Lambda
+Sender <-- Gateway1: Websocket ID
+
+Receiver -> Gateway2: Websocket Connect
+activate Gateway2
+Gateway2 -> Lambda: Return Websocket ID
+activate Lambda
+Gateway2 <-- Lambda: Websocket ID
+deactivate Lambda
+Receiver <-- Gateway2: Websocket ID
+
+== Connect Actors ==
+
+Sender -> Sender: Select File to send
+activate Sender
+Sender -> Sender: Show QR
+
+Receiver -> Receiver: Ask for file
+
+Activate Receiver
+Receiver -> Sender: Scan QR
+Receiver <-- Sender: QR
+Receiver -> Receiver: Decode QR
+== Transmit File ==
+
+Receiver -> Gateway2: get file (SocktID)
+Gateway2 -> Lambda: get file (SocktID)
+activate Lambda
+Lambda -> Gateway1: get file
+Gateway1 -> Sender: get file
+
+loop [For all file chunks]
+    Sender --> Gateway1: return file (File)
+    Gateway1 --> Lambda: return file (File)
+    Lambda --> Gateway2: send file (File)
+    Gateway2 --> Receiver: send file (File)
+    deactivate Lambda
+    Receiver -> Receiver: Check file Hash
+end
+
+
+== File Transfer Complete ==
+Receiver -> Gateway2: File OK done
+Receiver -> Receiver: Reset UI
+deactivate Receiver
+Gateway2 -> Lambda: File OK done
+activate Lambda
+Lambda -> Gateway1: File OK done
+deactivate Lambda
+Gateway1 -> Sender: File OK done
+Sender -> Sender: Reset UI
+deactivate Sender
+
+@enduml
